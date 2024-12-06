@@ -8,7 +8,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          DDAM Portfolio.
+          DDAM Portfolio 5
         </p>
         <a
           className="App-link"
