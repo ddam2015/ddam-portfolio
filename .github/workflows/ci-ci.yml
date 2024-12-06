@@ -1,72 +1,3 @@
-# name: CI/CD Pipeline
-
-# on:
-#   push:
-#     branches:
-#       - master
-#   pull_request:
-#     branches:
-#       - master
-
-# jobs:
-#   build-and-test:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#     # Checkout code
-#     - name: Checkout Code
-#       uses: actions/checkout@v3 
-
-#     # Set up Node.js
-#     - name: Set up Node.js
-#       uses: actions/setup-node@v3
-#       with:
-#         node-version: 18
-
-#     # Install dependencies
-#     - name: Install Dependencies
-#       run: npm install
-
-#     # Run tests
-#     - name: Run Tests
-#       run: npm test -- --watchAll=false
-
-#   docker-build-and-push:
-#     needs: build-and-test
-#     runs-on: ubuntu-latest
-#     if: github.ref == 'refs/heads/main'
-
-#     steps:
-#     # Checkout code
-#     - name: Checkout Code
-#       uses: actions/checkout@v3
-
-#     # Log in to DockerHub
-#     - name: Log in to DockerHub
-#       uses: docker/login-action@v2
-#       with:
-#         username: ${{ secrets.DOCKER_USERNAME }}
-#         password: ${{ secrets.DOCKER_PASSWORD }}
-
-#     # Build Docker image
-#     - name: Build Docker Image
-#       run: docker build -t ${{ secrets.DOCKER_USERNAME }}/react-ts-app:latest .
-
-#     # Push Docker image
-#     - name: Push Docker Image
-#       run: docker push ${{ secrets.DOCKER_USERNAME }}/react-ts-app:latest
-
-#   deploy:
-#     needs: docker-build-and-push
-#     runs-on: ubuntu-latest
-#     if: github.ref == 'refs/heads/main'
-
-#     steps:
-#     # Deploy (customize deployment steps as needed)
-#     - name: Deploy Application
-#       run: echo "Deployment step here (e.g., SSH, Kubernetes, AWS CLI, etc.)"
-
-
 name: CI/CD Pipeline
 
 on:
@@ -78,108 +9,52 @@ on:
       - master
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code
-      - name: Checkout code
-        uses: actions/checkout@v3
+    # Checkout code
+    - name: Checkout Code
+      uses: actions/checkout@v3 
 
-      # Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+    # Set up Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
 
-      # Install backend dependencies
-      - name: Install backend dependencies
-        working-directory: ./backend
-        run: |
-          npm install
+    # Install dependencies
+    - name: Install Dependencies
+      run: npm install
 
-      # Install frontend dependencies
-      - name: Install frontend dependencies
-        working-directory: ./frontend
-        run: |
-          npm install
+    # Run tests
+    - name: Run Tests
+      run: npm test -- --watchAll=false
 
-      # Run backend tests (you can add your backend tests here)
-      - name: Run backend tests
-        working-directory: ./backend
-        run: |
-          npm run test
-
-      # Run frontend tests (you can add your frontend tests here)
-      - name: Run frontend tests
-        working-directory: ./frontend
-        run: |
-          npm run test
-
-      # Build the backend
-      - name: Build backend
-        working-directory: ./backend
-        run: |
-          npm run build
-
-      # Build the frontend
-      - name: Build frontend
-        working-directory: ./frontend
-        run: |
-          npm run build
-
-  dockerize:
+  docker-build-and-push:
+    needs: build-and-test
     runs-on: ubuntu-latest
-    needs: build
+    if: github.ref == 'refs/heads/main'
+
     steps:
-      # Checkout the code
-      - name: Checkout code
-        uses: actions/checkout@v3
+    # Checkout code
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-      # Set up Docker
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+    # Log in to DockerHub
+    - name: Log in to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+    # Build Docker image
+    - name: Build Docker Image
+      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/react-ts-app:latest .
 
-      # Build backend Docker image
-      - name: Build backend Docker image
-        run: |
-          docker build -t your-username/mern-backend ./backend
-
-      # Build frontend Docker image
-      - name: Build frontend Docker image
-        run: |
-          docker build -t your-username/mern-frontend ./frontend
-
-      # Push Docker images to DockerHub
-      - name: Push Docker images
-        run: |
-          docker push your-username/mern-backend
-          docker push your-username/mern-frontend
-
-#   deploy:
-#     runs-on: ubuntu-latest
-#     needs: dockerize
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v3
-
-#       # Deploy to your hosting service, e.g., AWS, Heroku, DigitalOcean
-#       - name: Deploy to DigitalOcean
-#         env:
-#           DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
-#         run: |
-#           curl -sL https://github.com/digitalocean/doctl/releases/download/v1.90.0/doctl-1.90.0-linux-amd64.tar.gz | tar -xz
-#           sudo mv doctl /usr/local/bin
-#           doctl auth init -t $DO_API_TOKEN
-#           # Replace the following line with the deployment command for your platform
-#           doctl apps update <app_id> --image your-username/mern-backend
-#           doctl apps update <app_id> --image your-username/mern-frontend
+    # Push Docker image
+    - name: Push Docker Image
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/react-ts-app:latest
 
   deploy:
     needs: docker-build-and-push
